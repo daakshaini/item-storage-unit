@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<title>Item Storage Unit</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+
+body{
+font-family:Arial;
+background:#f2f2f2;
+text-align:center;
+}
+
+.container{
+background:white;
+width:350px;
+margin:auto;
+margin-top:40px;
+padding:20px;
+border-radius:8px;
+box-shadow:0px 0px 10px gray;
+}
+
+input{
+width:90%;
+padding:8px;
+margin:6px;
+}
+
+button{
+padding:8px 15px;
+margin:5px;
+background:#003366;
+color:white;
+border:none;
+cursor:pointer;
+}
+
+.error{
+color:red;
+font-size:14px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h1>Item Storage Unit</h1>
+
+<div class="container">
+
+<button onclick="showSignup()">Signup</button>
+<button onclick="showLogin()">Login</button>
+
+<!-- SIGNUP -->
+<div id="signup">
+
+<h3>Signup</h3>
+
+<input id="username" placeholder="Username (2-6 numbers)">
+<div id="userError" class="error"></div>
+
+<input type="password" id="password" placeholder="Password">
+<div id="passError" class="error"></div>
+
+<input type="password" id="confirm" placeholder="Confirm Password">
+<div id="confirmError" class="error"></div>
+
+<input id="phone" placeholder="Phone Number">
+
+<button onclick="generateOTP()">Get OTP</button>
+
+<input id="otpInput" placeholder="Enter OTP">
+<button onclick="verifyOTP()">Verify</button>
+
+<br>
+<button onclick="createAccount()">Create Account</button>
+
+</div>
+
+<!-- LOGIN -->
+<div id="login" style="display:none">
+
+<h3>Login</h3>
+
+<input id="loginUser" placeholder="Username">
+<input type="password" id="loginPass" placeholder="Password">
+
+<div id="loginError" class="error"></div>
+
+<button onclick="login()">Login</button>
+
+</div>
+
+</div>
+
+<script>
+
+let generatedOTP="";
+let phoneVerified=false;
+
+function showSignup(){
+document.getElementById("signup").style.display="block";
+document.getElementById("login").style.display="none";
+}
+
+function showLogin(){
+document.getElementById("signup").style.display="none";
+document.getElementById("login").style.display="block";
+}
+
+/* OTP GENERATION */
+function generateOTP(){
+generatedOTP=Math.floor(1000+Math.random()*9000);
+alert("OTP: "+generatedOTP);
+}
+
+/* OTP VERIFY */
+function verifyOTP(){
+let entered=document.getElementById("otpInput").value;
+
+if(entered==generatedOTP){
+phoneVerified=true;
+alert("Phone Verified Successfully");
+}else{
+alert("Wrong OTP");
+}
+}
+
+/* CREATE ACCOUNT */
+function createAccount(){
+
+let username=document.getElementById("username").value;
+let password=document.getElementById("password").value;
+let confirm=document.getElementById("confirm").value;
+
+let userPattern=/^[0-9]{2,6}$/;
+let passPattern=/^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[\W]).+$/;
+
+if(!userPattern.test(username)){
+document.getElementById("userError").innerText="Username must contain 2-6 numbers";
+return;
+}else{
+document.getElementById("userError").innerText="";
+}
+
+if(!passPattern.test(password)){
+document.getElementById("passError").innerText="Password must contain uppercase, lowercase, number & special character";
+return;
+}else{
+document.getElementById("passError").innerText="";
+}
+
+if(password!==confirm){
+document.getElementById("confirmError").innerText="Passwords do not match";
+return;
+}else{
+document.getElementById("confirmError").innerText="";
+}
+
+if(!phoneVerified){
+alert("Please verify phone number using OTP");
+return;
+}
+
+/* SAVE LOGIN DETAILS */
+localStorage.setItem("username",username);
+localStorage.setItem("password",password);
+
+alert("Account Created Successfully!");
+
+}
+
+/* LOGIN */
+function login(){
+
+let enteredUser=document.getElementById("loginUser").value;
+let enteredPass=document.getElementById("loginPass").value;
+
+let savedUser=localStorage.getItem("username");
+let savedPass=localStorage.getItem("password");
+
+if(enteredUser!==savedUser){
+document.getElementById("loginError").innerText="Wrong Username!";
+return;
+}
+
+if(enteredPass!==savedPass){
+document.getElementById("loginError").innerText="Wrong Password!";
+return;
+}
+
+document.getElementById("loginError").innerText="";
+
+alert("Login Successful!");
+
+}
+
+</script>
+
+</body>
+</html>
