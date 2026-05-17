@@ -1,47 +1,88 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+
 <head>
 
-<title>Item Storage Unit</title>
+<meta charset="UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+<title>Item Storage Unit</title>
+
 <style>
 
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Arial,sans-serif;
+}
+
 body{
-font-family:Arial;
 background:#f2f2f2;
-text-align:center;
+display:flex;
+justify-content:center;
+align-items:center;
+height:100vh;
 }
 
 .container{
 background:white;
-width:350px;
-margin:auto;
-margin-top:40px;
-padding:20px;
-border-radius:8px;
-box-shadow:0px 0px 10px gray;
+width:380px;
+padding:25px;
+border-radius:10px;
+box-shadow:0px 0px 15px rgba(0,0,0,0.2);
+text-align:center;
 }
 
-input{
-width:90%;
-padding:8px;
-margin:6px;
+h1{
+margin-bottom:20px;
+color:#003366;
 }
 
 button{
-padding:8px 15px;
+padding:10px 18px;
 margin:5px;
+border:none;
+border-radius:5px;
 background:#003366;
 color:white;
-border:none;
 cursor:pointer;
+font-size:15px;
+}
+
+button:hover{
+background:#0055aa;
+}
+
+input{
+width:100%;
+padding:10px;
+margin-top:10px;
+border:1px solid #ccc;
+border-radius:5px;
+font-size:14px;
 }
 
 .error{
 color:red;
+font-size:13px;
+margin-top:5px;
+text-align:left;
+}
+
+.success{
+color:green;
 font-size:14px;
+margin-top:10px;
+}
+
+.section{
+margin-top:20px;
+}
+
+.hidden{
+display:none;
 }
 
 </style>
@@ -50,158 +91,446 @@ font-size:14px;
 
 <body>
 
-<h1>Item Storage Unit</h1>
-
 <div class="container">
 
-<button onclick="showSignup()">Signup</button>
-<button onclick="showLogin()">Login</button>
+<h1>Item Storage Unit</h1>
 
-<!-- SIGNUP -->
-<div id="signup">
+<button onclick="showSignup()">
+Signup
+</button>
 
-<h3>Signup</h3>
+<button onclick="showLogin()">
+Login
+</button>
 
-<input id="username" placeholder="Username (2-6 numbers)">
+<!-- SIGNUP SECTION -->
+
+<div id="signupSection" class="section">
+
+<h3>Create Account</h3>
+
+<input type="text"
+id="username"
+placeholder="Username (2-6 numbers)">
+
 <div id="userError" class="error"></div>
 
-<input type="password" id="password" placeholder="Password">
+<input type="password"
+id="password"
+placeholder="Password">
+
 <div id="passError" class="error"></div>
 
-<input type="password" id="confirm" placeholder="Confirm Password">
+<input type="password"
+id="confirmPassword"
+placeholder="Confirm Password">
+
 <div id="confirmError" class="error"></div>
 
-<input id="phone" placeholder="Phone Number">
+<input type="text"
+id="phone"
+placeholder="+91XXXXXXXXXX">
 
-<button onclick="generateOTP()">Get OTP</button>
+<!-- RECAPTCHA -->
 
-<input id="otpInput" placeholder="Enter OTP">
-<button onclick="verifyOTP()">Verify</button>
+<div id="recaptcha-container"></div>
 
-<br>
-<button onclick="createAccount()">Create Account</button>
+<button onclick="generateOTP()">
+Get OTP
+</button>
+
+<input type="text"
+id="otpInput"
+placeholder="Enter OTP">
+
+<button onclick="verifyOTP()">
+Verify OTP
+</button>
+
+<div id="otpMessage"
+class="success"></div>
+
+<br><br>
+
+<button onclick="createAccount()">
+Create Account
+</button>
+
+<div id="signupSuccess"
+class="success"></div>
 
 </div>
 
-<!-- LOGIN -->
-<div id="login" style="display:none">
+<!-- LOGIN SECTION -->
+
+<div id="loginSection"
+class="section hidden">
 
 <h3>Login</h3>
 
-<input id="loginUser" placeholder="Username">
-<input type="password" id="loginPass" placeholder="Password">
+<input type="text"
+id="loginUser"
+placeholder="Username">
 
-<div id="loginError" class="error"></div>
+<input type="password"
+id="loginPass"
+placeholder="Password">
 
-<button onclick="login()">Login</button>
+<div id="loginError"
+class="error"></div>
+
+<br>
+
+<button onclick="login()">
+Login
+</button>
+
+<div id="loginSuccess"
+class="success"></div>
 
 </div>
 
 </div>
+
+<!-- FIREBASE SDK -->
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 
 <script>
 
-let generatedOTP="";
-let phoneVerified=false;
+/* FIREBASE CONFIG */
+
+const firebaseConfig = {
+
+apiKey: "AIzaSyDNZcByFjkDinvcwLW8cRc5Cqzh3y-3yyk",
+
+authDomain: "item-storage-unit.firebaseapp.com",
+
+projectId: "item-storage-unit",
+
+storageBucket: "item-storage-unit.firebasestorage.app",
+
+messagingSenderId: "475789016815",
+
+appId: "1:475789016815:web:6088880c6b9cdffaefe51a"
+
+};
+
+/* INITIALIZE FIREBASE */
+
+firebase.initializeApp(firebaseConfig);
+
+const auth = firebase.auth();
+
+/* GLOBAL VARIABLE */
+
+let phoneVerified = false;
+
+/* SHOW SIGNUP */
 
 function showSignup(){
-document.getElementById("signup").style.display="block";
-document.getElementById("login").style.display="none";
+
+document.getElementById("signupSection")
+.classList.remove("hidden");
+
+document.getElementById("loginSection")
+.classList.add("hidden");
+
 }
+
+/* SHOW LOGIN */
 
 function showLogin(){
-document.getElementById("signup").style.display="none";
-document.getElementById("login").style.display="block";
+
+document.getElementById("signupSection")
+.classList.add("hidden");
+
+document.getElementById("loginSection")
+.classList.remove("hidden");
+
 }
 
-/* OTP GENERATION */
+/* RECAPTCHA */
+
+window.onload = function(){
+
+window.recaptchaVerifier =
+new firebase.auth.RecaptchaVerifier(
+'recaptcha-container',
+{
+size:'normal'
+}
+);
+
+};
+
+/* SEND OTP */
+
 function generateOTP(){
-generatedOTP=Math.floor(1000+Math.random()*9000);
-alert("OTP: "+generatedOTP);
+
+let phone =
+document.getElementById("phone").value;
+
+if(phone==""){
+
+alert("Please Enter Phone Number");
+
+return;
+
 }
 
-/* OTP VERIFY */
+auth.signInWithPhoneNumber(
+phone,
+window.recaptchaVerifier
+)
+
+.then(function(confirmationResult){
+
+window.confirmationResult =
+confirmationResult;
+
+alert("OTP Sent Successfully");
+
+})
+
+.catch(function(error){
+
+alert(error.message);
+
+});
+
+}
+
+/* VERIFY OTP */
+
 function verifyOTP(){
-let entered=document.getElementById("otpInput").value;
 
-if(entered==generatedOTP){
-phoneVerified=true;
-alert("Phone Verified Successfully");
-}else{
-alert("Wrong OTP");
-}
+let code =
+document.getElementById("otpInput").value;
+
+confirmationResult.confirm(code)
+
+.then(function(result){
+
+phoneVerified = true;
+
+document.getElementById("otpMessage")
+.style.color = "green";
+
+document.getElementById("otpMessage")
+.innerText =
+"Phone Verified Successfully";
+
+})
+
+.catch(function(error){
+
+document.getElementById("otpMessage")
+.style.color = "red";
+
+document.getElementById("otpMessage")
+.innerText =
+"Invalid OTP";
+
+});
+
 }
 
 /* CREATE ACCOUNT */
+
 function createAccount(){
 
-let username=document.getElementById("username").value;
-let password=document.getElementById("password").value;
-let confirm=document.getElementById("confirm").value;
+let username =
+document.getElementById("username")
+.value.trim();
 
-let userPattern=/^[0-9]{2,6}$/;
-let passPattern=/^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[\W]).+$/;
+let password =
+document.getElementById("password")
+.value;
+
+let confirmPassword =
+document.getElementById("confirmPassword")
+.value;
+
+/* PATTERNS */
+
+let userPattern =
+/^[0-9]{2,6}$/;
+
+let passPattern =
+/^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[\W]).{8,}$/;
+
+/* CLEAR ERRORS */
+
+document.getElementById("userError")
+.innerText = "";
+
+document.getElementById("passError")
+.innerText = "";
+
+document.getElementById("confirmError")
+.innerText = "";
+
+document.getElementById("signupSuccess")
+.innerText = "";
+
+/* USERNAME VALIDATION */
 
 if(!userPattern.test(username)){
-document.getElementById("userError").innerText="Username must contain 2-6 numbers";
+
+document.getElementById("userError")
+.innerText =
+"Username must contain 2-6 digits only";
+
 return;
-}else{
-document.getElementById("userError").innerText="";
+
 }
+
+/* PASSWORD VALIDATION */
 
 if(!passPattern.test(password)){
-document.getElementById("passError").innerText="Password must contain uppercase, lowercase, number & special character";
+
+document.getElementById("passError")
+.innerText =
+"Password must contain uppercase, lowercase, number, special character and minimum 8 characters";
+
 return;
-}else{
-document.getElementById("passError").innerText="";
+
 }
 
-if(password!==confirm){
-document.getElementById("confirmError").innerText="Passwords do not match";
+/* PASSWORD MATCH */
+
+if(password !== confirmPassword){
+
+document.getElementById("confirmError")
+.innerText =
+"Passwords do not match";
+
 return;
-}else{
-document.getElementById("confirmError").innerText="";
+
 }
+
+/* PHONE VERIFIED */
 
 if(!phoneVerified){
-alert("Please verify phone number using OTP");
+
+alert("Please Verify Phone Number");
+
 return;
-}
-
-/* SAVE LOGIN DETAILS */
-localStorage.setItem("username",username);
-localStorage.setItem("password",password);
-
-alert("Account Created Successfully!");
 
 }
 
-/* LOGIN */
+/* SAVE DATA */
+
+localStorage.setItem(
+"username",
+username
+);
+
+localStorage.setItem(
+"password",
+password
+);
+
+/* SUCCESS */
+
+document.getElementById("signupSuccess")
+.innerText =
+"Account Created Successfully";
+
+/* CLEAR INPUTS */
+
+document.getElementById("username")
+.value = "";
+
+document.getElementById("password")
+.value = "";
+
+document.getElementById("confirmPassword")
+.value = "";
+
+document.getElementById("phone")
+.value = "";
+
+document.getElementById("otpInput")
+.value = "";
+
+phoneVerified = false;
+
+}
+
+/* LOGIN FUNCTION */
+
 function login(){
 
-let enteredUser=document.getElementById("loginUser").value;
-let enteredPass=document.getElementById("loginPass").value;
+let enteredUser =
+document.getElementById("loginUser")
+.value;
 
-let savedUser=localStorage.getItem("username");
-let savedPass=localStorage.getItem("password");
+let enteredPass =
+document.getElementById("loginPass")
+.value;
 
-if(enteredUser!==savedUser){
-document.getElementById("loginError").innerText="Wrong Username!";
+let savedUser =
+localStorage.getItem("username");
+
+let savedPass =
+localStorage.getItem("password");
+
+/* CLEAR OLD MESSAGES */
+
+document.getElementById("loginError")
+.innerText = "";
+
+document.getElementById("loginSuccess")
+.innerText = "";
+
+/* USERNAME CHECK */
+
+if(enteredUser !== savedUser){
+
+document.getElementById("loginError")
+.innerText =
+"Wrong Username";
+
 return;
+
 }
 
-if(enteredPass!==savedPass){
-document.getElementById("loginError").innerText="Wrong Password!";
+/* PASSWORD CHECK */
+
+if(enteredPass !== savedPass){
+
+document.getElementById("loginError")
+.innerText =
+"Wrong Password";
+
 return;
+
 }
 
-document.getElementById("loginError").innerText="";
+/* SUCCESS */
 
-alert("Login Successful!");
+document.getElementById("loginSuccess")
+.innerText =
+"Login Successful";
+
+alert("Welcome to Item Storage Unit");
+
+/* CLEAR */
+
+document.getElementById("loginUser")
+.value = "";
+
+document.getElementById("loginPass")
+.value = "";
 
 }
 
 </script>
 
 </body>
+
 </html>
